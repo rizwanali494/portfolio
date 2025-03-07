@@ -1,8 +1,9 @@
 import { 
-  projects, skills, messages,
+  projects, skills, messages, profile,
   type Project, type InsertProject,
   type Skill, type InsertSkill,
   type Message, type InsertMessage,
+  type Profile, type InsertProfile,
   users, type User, type InsertUser
 } from "@shared/schema";
 import { db } from "./db";
@@ -13,6 +14,10 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+
+  // Profile operations
+  getProfile(): Promise<Profile | undefined>;
+  updateProfile(profile: InsertProfile): Promise<Profile>;
 
   // Project operations
   getProjects(): Promise<Project[]>;
@@ -44,6 +49,30 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return newUser;
+  }
+
+  // Profile operations
+  async getProfile(): Promise<Profile | undefined> {
+    const profiles = await db.select().from(profile).limit(1);
+    return profiles[0];
+  }
+
+  async updateProfile(profileData: InsertProfile): Promise<Profile> {
+    const profiles = await db.select().from(profile);
+    if (profiles.length === 0) {
+      const [newProfile] = await db
+        .insert(profile)
+        .values(profileData)
+        .returning();
+      return newProfile;
+    }
+
+    const [updatedProfile] = await db
+      .update(profile)
+      .set(profileData)
+      .where(eq(profile.id, profiles[0].id))
+      .returning();
+    return updatedProfile;
   }
 
   // Project operations

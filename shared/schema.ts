@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -15,6 +15,16 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+export const profile = pgTable("profile", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  title: text("title").notNull(),
+  bio: text("bio").notNull(),
+  imageUrl: text("image_url").notNull(),
+  resumeUrl: text("resume_url").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
@@ -43,6 +53,11 @@ export const messages = pgTable("messages", {
 });
 
 // Create insert schemas
+export const insertProfileSchema = createInsertSchema(profile).omit({
+  id: true,
+  updatedAt: true,
+});
+
 export const insertProjectSchema = createInsertSchema(projects).omit({ 
   id: true,
   createdAt: true 
@@ -59,6 +74,9 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
 });
 
 // Export types
+export type Profile = typeof profile.$inferSelect;
+export type InsertProfile = z.infer<typeof insertProfileSchema>;
+
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 
